@@ -149,7 +149,14 @@ def insert_data(db_name, _id, data):
     resp = requests.put(url=url, data=data, params=param)
     print(resp.text)
 
-
+def get_all_data():
+    url = couchDB_address+db_name+'/_all_docs'
+    req = requests.get(url)
+    data = req.json()
+    data = data["rows"]
+    all_id = [d["id"] for d in data]
+    
 if __name__ == '__main__':
-    Get_Historical_data()
+    #Get_Historical_data()
     #update_data()
+    get_all_data()
