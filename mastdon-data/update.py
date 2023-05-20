@@ -9,6 +9,18 @@ websites=["https://aus.social/api/v1/timelines/public",
           "https://theblower.au/api/v1/timelines/public",
           "https://mastodon.au/api/v1/timelines/public"]
 
+username = 'admin'
+password = 'admin'
+server = '172.26.135.87:5984'
+db_name = 'mastodon_processed'
+
+topics = ['web3', 'politics', 'porn']
+sub_topics = ['cc', 'nft', 'scotty', 'ukraine']
+
+def update_view(view_name):
+    url = f"http://{username}:{password}@{server}/{db_name}/_design/{view_name}/_view/{view_name}"
+    resp = requests.get(url)
+
 def get_data(url, max_id, limit, forward=False):
     if forward == False:
         params = {'local':True, 'max_id':max_id, 'limit':limit}
@@ -41,8 +53,6 @@ def get_data(url, max_id, limit, forward=False):
             return None, None
         return data, last_id
 
-topics = ['web3', 'politics', 'porn']
-sub_topics = ['cc', 'nft', 'scotty', 'ukraine']
 def topic_cls(text, corpus1, corpus2):
     topic = []
     sub_topic = []
@@ -143,6 +153,10 @@ def update_data():
                 newData['tag'] = tweets['tags']
                 newData['topic'], newData['sub_topic'] = topic_cls(newData['token'], corpus_l1, corpus_l2)
                 insert_data(db_name, _id, json.dumps(newData))
+
+            for t in topics+sub_topics:
+                update_view(t)
+                
         #store current last id in disk
         last_id_file = open("latest_id.txt", "w")
         for id in last_ids:
