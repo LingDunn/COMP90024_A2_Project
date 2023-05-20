@@ -156,7 +156,8 @@ def update_data():
 
             for t in topics+sub_topics:
                 update_view(t)
-                
+            update_view('lang')
+
         #store current last id in disk
         last_id_file = open("latest_id.txt", "w")
         for id in last_ids:

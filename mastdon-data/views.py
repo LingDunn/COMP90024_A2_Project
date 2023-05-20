@@ -7,13 +7,13 @@ password = 'admin'
 server = '172.26.135.87:5984'
 db_name = 'mastodon_processed'
 
-def create_view(view_name, map_func):
+def create_view(view_name, map_func, reduce_func="_stats"):
     design_doc = {
         "_id": f"_design/{view_name}",
         "views": {
             view_name: {
                 "map": map_func,
-                "reduce": "_count"
+                "reduce": f"{reduce_func}"
             }
         }
     }
@@ -38,15 +38,25 @@ def process(view_type, topic=None, sub_topic=None):
                             }}
                         }}'''
         create_view(f"{sub_topic}", map_func)
-
+    elif view_type == 'lang':
+        lang_reduce = '''function (keys, values, rereduce) {return sum(values)}'''
+        map_func = f'''function(doc){{
+                            if(doc.lang != null){{
+                                emit(doc.lang, 1);
+                            }}
+                        }}'''
+        create_view(f"lang", map_func, lang_reduce)
+        
 def update(view_name):
     url = f"http://{username}:{password}@{server}/{db_name}/_design/{view_name}/_view/{view_name}"
     resp = requests.get(url)
-
 topics = ['web3', 'politics', 'porn']
+
+
+update('lang')
 #for topic in topics:
 #process("topic", topic=topics[0])
-update('porn')
+#update('porn')
 
 # sub_topics = ['cc', 'nft', 'scotty', 'ukraine']
 # #for sub_topic in sub_topics:
