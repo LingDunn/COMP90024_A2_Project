@@ -11,7 +11,7 @@ websites=["https://aus.social/api/v1/timelines/public",
 
 username = 'admin'
 password = 'admin'
-server = '172.26.135.87:5984'
+server = '172.26.130.118:80'
 db_name = 'mastodon_processed'
 
 topics = ['web3', 'politics', 'porn']
@@ -109,9 +109,12 @@ def insert_data(db_name, _id, data):
     if resp.status_code == 201:
         pass
     else:
-        print(resp.text)
+        if resp.json()['error'] == 'conflict':
+            return False
+        else:
+            print(resp.text)
 
-couchDB_address = 'http://admin:admin@172.26.135.87:5984/'
+couchDB_address = 'http://admin:admin@172.26.130.118:80/'
 db_name = 'mastodon_processed'
 
 
