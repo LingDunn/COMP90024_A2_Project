@@ -1,0 +1,75 @@
+# Common vars
+availability_zone: melbourne-qh2-uom
+instance_image: bbaf16f8-2484-48d7-b455-42209cc4b8d2
+instance_key_name: mrc
+instance_flavor: uom.mse.2c9g
+
+# Volume
+volumes:
+  - vol_name: cloud1-docker
+    vol_size: 50
+  - vol_name: cloud1-data
+    vol_size: 30
+  - vol_name: cloud2-docker
+    vol_size: 50
+  - vol_name: cloud2-data
+    vol_size: 30
+  - vol_name: cloud3-docker
+    vol_size: 50
+  - vol_name: cloud3-data
+    vol_size: 30
+  - vol_name: cloud4-docker
+    vol_size: 50
+  - vol_name: cloud4-data
+    vol_size: 100
+
+# Security group
+security_groups:
+  - name: ssh
+    description: "Security group for SSH access"
+    protocol: tcp
+    port_range_min: 22
+    port_range_max: 22
+    remote_ip_prefix: 0.0.0.0/0
+  - name: http
+    description: "Security group for HTTP access"
+    protocol: tcp
+    port_range_min: 80
+    port_range_max: 80
+    remote_ip_prefix: 0.0.0.0/0
+  - name: couchdbHTTP
+    description: "Security group for Couchdb"
+    protocol: tcp
+    port_range_min: 5984
+    port_range_max: 5984
+    remote_ip_prefix: 0.0.0.0/0
+  - name: couchdbClusterMan
+    description: "Security group for Couchdb"
+    protocol: tcp
+    port_range_min: 4369
+    port_range_max: 4369
+    remote_ip_prefix: 0.0.0.0/0
+  - name: couchdbClusterIn
+    description: "Security group for Couchdb"
+    protocol: tcp
+    port_range_min: 9100
+    port_range_max: 9100
+    remote_ip_prefix: 0.0.0.0/0
+
+# Instance
+instances:
+  - name: cloud1
+    volumes: ["cloud1-docker","cloud1-data"]
+  - name: cloud2
+    volumes: ["cloud2-docker","cloud2-data"]
+  - name: cloud3
+    volumes: ["cloud3-docker","cloud3-data"]
+  - name: cloud4
+    volumes: ["cloud4-docker","cloud4-data"]
+
+# Attach volumes to the instances
+attached_volumes:
+  - device: /dev/vdb
+    mountpoint: /var/lib/docker
+  - device: /dev/vdc
+    mountpoint: /data

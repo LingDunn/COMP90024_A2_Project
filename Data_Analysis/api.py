@@ -9,16 +9,13 @@
 #       Lingling Yao - 1204405          #
 #########################################
 
-
-import json
-import couchdb
-import requests
+import requests, string
 import pandas as pd
-from flask import Flask
+import couchdb
 
 username = 'admin'
 password = 'admin'
-server = '172.26.135.87:5984'
+server = '172.26.130.118:80'
 twitter_db = "twitter-geo"
 mastodon_db = "mastodon_processed"
 
@@ -33,17 +30,11 @@ states_abbr = {
     'australian capital territory': 'act'
 }
 
-
 def conn():
     """
     Create db connection.
     """
-    # auth
-    admin = "admin"
-    password = "admin"
-    ip = "172.26.135.87"
-    port = "5984"
-    url = "http://" + admin + ":" + password + "@" + ip + ":" + port + "/"
+    url = "http://" + username + ":" + password + "@" + server + "/"
     couch = couchdb.Server(url)
     return couch
 
@@ -184,7 +175,6 @@ def get_sudo_avg(state):
     except Exception as e:
         return {"Error": e}
 
-
 def get_hashtags_cnt(limit=10000):
     try:
         url = f"http://{username}:{password}@{server}/hashtags/_find"
@@ -199,7 +189,7 @@ def get_hashtags_cnt(limit=10000):
         return data
     except Exception as e:
         return {"Error": e}
-
+    
 
 def lang_view(db):
     try:
@@ -250,3 +240,89 @@ def twt_topic_count():
         return {"topics": topics, "cnts": cnts}
     except Exception as e:
         return {"Error": e}
+
+def get_topic_counts(sub_topic):
+    res = twt_topic_count()
+    topic = res["topics"]
+    cnts = res["cnts"]
+    dict = {}
+    for i in range(len(topic)):
+        dict[topic[i]] = cnts[i]
+    m_c = dict[sub_topic]
+    rest = dict["scotty"] + dict["cc"] + dict["nft"] + dict["porn"]
+    data = {"counts": [m_c, rest]}
+    return data
+
+def get_mas_topic_counts(sub_topic):
+    # try:
+    m_c = mas_topic_view(sub_topic)[sub_topic]
+    rest = m_c
+    rest += mas_topic_view("scotty")["scotty"]
+    rest += mas_topic_view("ukraine")["ukraine"]
+    rest += mas_topic_view("nft")["nft"]
+    rest += mas_topic_view("cc")["cc"]
+    data = {"counts": [m_c, rest]}
+    return data
+
+def prepare_dist(sub_topic):
+    final_res = {}
+    state_dist_dic = {}
+    
+    # prepare map
+    res = []
+    state_dist_dic = {}
+    for state in states_abbr:
+        tmp = {}
+        tmp["state"] = string.capwords(state)
+        tmp_avg = get_sudo_avg(state)
+        tmp["mid_age"] = tmp_avg["med_age"]
+        tmp["mid_week_inc"] = tmp_avg["med_week_inc"]
+
+        state_dist_dic[state] = twt_state_topic_dist(sub_topic, state)
+        tmp["cnt"] = state_dist_dic[state]["count"]
+        tmp["sent"] = round(state_dist_dic[state]["avg_sent"], 3)
+        res.append(tmp)
+
+    final_res["map_data"] = res
+    # prepare dist
+    # AUS
+    final_res["aus"] = twt_topic_dist(sub_topic)
+    final_res["aus"]["sub"] = ", ".join([string.capwords(state) for state in states_abbr])
+    # NSW
+    final_res["nsw"] = state_dist_dic["new south wales"]
+    final_res["nsw"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "new south wales"))
+    # VIC
+    final_res["vic"] = state_dist_dic["victoria"]
+    final_res["vic"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "victoria"))
+    # QSL
+    final_res["qsl"] = state_dist_dic["queensland"]
+    final_res["qsl"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "queensland"))
+    # WA
+    final_res["wa"] = state_dist_dic["western australia"]
+    final_res["wa"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "western australia"))
+    # SA
+    final_res["sa"] = state_dist_dic["south australia"]
+    final_res["sa"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "south australia"))
+    # TAS
+    final_res["tas"] = state_dist_dic["tasmania"]
+    final_res["tas"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "tasmania"))
+    # NT
+    final_res["nt"] = state_dist_dic["northern territory"]
+    final_res["nt"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "northern territory"))
+    # ACT
+    final_res["act"] = state_dist_dic["australian capital territory"]
+    final_res["act"]["sub"] = get_suburb(twt_state_topic_view(sub_topic, "australian capital territory"))
+
+    return final_res
+
+def get_suburb(data):
+    """
+    Getting the suburb name from given list of dic.
+    """
+    res = ""
+    for item in data:
+        res += string.capwords(item["suburb"]) + ", "
+    return res
+
+if __name__ == "__main__":
+    print(get_hashtags_cnt(5))
