@@ -10,7 +10,7 @@ Team members:
     Lingling Yao            - 1204405          
 
 # Code Structure
-ansible: ansible scripts for environment create
-Data_Analysis: analyzing tools and backend application
-mastodon-data: mastodon data collector
+ansible: ansible scripts for environment create <\br>
+Data_Analysis: analyzing tools and backend application <\br>
+mastodon-data: mastodon data collector <\br>
 web-app: frontend web page
