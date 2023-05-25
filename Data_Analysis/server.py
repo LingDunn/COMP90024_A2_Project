@@ -31,6 +31,11 @@ cors = CORS(app)
 #################
 #   DASHBOARD   #
 #################
+@app.route("/")
+def hello():
+    return '''Hello, flask end is running '''
+
+
 @app.route("/dashboard_lang_mas")
 def dashboard_lang_mas():
     """

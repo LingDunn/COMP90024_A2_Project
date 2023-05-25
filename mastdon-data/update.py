@@ -11,9 +11,8 @@ websites=["https://aus.social/api/v1/timelines/public",
 
 username = 'admin'
 password = 'admin'
-server = '172.26.130.118:80'
+server = '172.26.130.118:5984'
 db_name = 'mastodon_processed'
-
 topics = ['web3', 'politics', 'porn']
 sub_topics = ['cc', 'nft', 'scotty', 'ukraine']
 
@@ -104,10 +103,10 @@ corpus_l2 = load_corpus(sub_corpus_paths)
 
 def insert_data(db_name, _id, data):
     param = {'new_edits':True}
-    url = couchDB_address + db_name+ '/' + _id
+    url = f"http://{username}:{password}@{server}/{db_name}/{_id}"
     resp = requests.put(url=url, data=data, params=param)
     if resp.status_code == 201:
-        pass
+        return True
     else:
         try: 
             if resp.json()['error'] == 'conflict':
@@ -116,9 +115,7 @@ def insert_data(db_name, _id, data):
                 print(resp.text)
         except:
             print(resp.text)
-
-couchDB_address = 'http://admin:admin@172.26.130.118:80/'
-db_name = 'mastodon_processed'
+    return False
 
 
 # update current database based on last id retrived
@@ -158,8 +155,8 @@ def update_data():
                 newData['state'] = ''
                 newData['tag'] = tweets['tags']
                 newData['topic'], newData['sub_topic'] = topic_cls(newData['token'], corpus_l1, corpus_l2)
-                insert_data(db_name, _id, json.dumps(newData))
-
+                s = insert_data(db_name, _id, json.dumps(newData))
+                
             for t in topics+sub_topics:
                 update_view(t)
             update_view('lang')
