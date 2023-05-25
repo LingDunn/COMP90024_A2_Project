@@ -2,27 +2,54 @@
 
 
 
-## API Examples
+## API
 
 ```
-http://127.0.0.1:5000/distribution/twitter/cc
+# Given a topic, return distributions over the country
+/distribution/twitter/<string:topic>
+http://172.26.135.213:5000/distribution/twitter/cc
 
-http://127.0.0.1:5000/distribution/twitter/cc/new south wales
+# Given a topic and a state, return distributions over the state
+/distribution/twitter/<string:topic>/<string:state>
+http://172.26.135.213:5000/distribution/twitter/cc/new south wales
 
-http://127.0.0.1:5000/view/twitter/cc/new south wales
+# Given a topic and a state, return topic_state_view
+/view/twitter/<string:topic>/<string:state>
+http://172.26.135.213:5000/view/twitter/cc/new south wales
 
-http://127.0.0.1:5000/sudo/gi/new south wales
+# Get sudo gi data for a state
+/sudo/gi/<string:state>
+http://172.26.135.213:5000/sudo/gi/new south wales
 
-http://127.0.0.1:5000/sudo/avg/new south wales
+# Get sudo avg data for a state
+/sudo/avg/<string:state>
+http://172.26.135.213:5000/sudo/avg/new south wales
 
-http://127.0.0.1:5000/hashtags/1000
+# Get hashtags sorted by counts
+# Limit the number of results returned
+/hashtags/<int:limit>
+http://172.26.135.213:5000/hashtags/1000
 
-http://127.0.0.1:5000/view/mastodon/cc
+# Get view of mastodon data based on a topic
+/view/mastodon/<string:topic>
+http://172.26.135.213:5000/view/mastodon/cc
 
-http://127.0.0.1:5000/view/lang/twitter
+# Get view of twitter or mastodon data based on language
+/view/lang/<string:db>
+http://172.26.135.213:5000/view/lang/twitter
+http://172.26.135.213:5000/view/lang/mastodon
 
-http://127.0.0.1:5000/count/twitter
+# Get number of twitter or mastodon data
+/count/<string:db>
+http://172.26.135.213:5000/count/twitter
+http://172.26.135.213:5000/count/mastodon
+
+# Get number of counts of tweets quickly
+/topic/count/twitter
+http://172.26.135.213:5000/topic/count/twitter
 ```
+
+
 
 
 
@@ -227,5 +254,4 @@ Create a new database: `create_db`
 Small json file: `insert_bulk`
 
 Large json file: `insert_batch_bulk`
-
 

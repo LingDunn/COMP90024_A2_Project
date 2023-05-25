@@ -109,9 +109,12 @@ def insert_data(db_name, _id, data):
     if resp.status_code == 201:
         pass
     else:
-        if resp.json()['error'] == 'conflict':
-            return False
-        else:
+        try: 
+            if resp.json()['error'] == 'conflict':
+                return False
+            else:
+                print(resp.text)
+        except:
             print(resp.text)
 
 couchDB_address = 'http://admin:admin@172.26.130.118:80/'

@@ -4,3 +4,5 @@
 .idea/
 data/
 sudo/
+test.py
+*.bkp

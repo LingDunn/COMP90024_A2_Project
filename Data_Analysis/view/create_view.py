@@ -95,19 +95,29 @@ def process(view_type, suburb=False, topic=None, sub_topic=None):
                                }}
                             }}'''
             create_view(f"{sub_topic}_state", map_func)
+        elif view_type == "lang":
+            lang_reduce = '''function (keys, values, rereduce) {return sum(values)}'''
+            map_func = f'''function(doc){{
+                               if(doc.lang != null){{
+                                   emit(doc.lang, 1);
+                               }}
+                            }}'''
+            create_view("lang", map_func, lang_reduce)
 
 
-process("sentiment")
-process("sentiment", suburb=True)
+# process("sentiment")
+# process("sentiment", suburb=True)
 
 
-topics = ['web3', 'politics', 'porn']
-for topic in topics:
-    process("topic", topic=topic)
-    process("topic", suburb=True, topic=topic)
+# topics = ['web3', 'politics', 'porn']
+# for topic in topics:
+#     process("topic", topic=topic)
+#     process("topic", suburb=True, topic=topic)
 
 
-sub_topics = ['cc', 'nft', 'scotty', 'ukraine']
-for sub_topic in sub_topics:
-    process("sub_topic", sub_topic=sub_topic)
-    process("sub_topic", suburb=True, sub_topic=sub_topic)
+# sub_topics = ['cc', 'nft', 'scotty', 'ukraine']
+# for sub_topic in sub_topics:
+#     process("sub_topic", sub_topic=sub_topic)
+#     process("sub_topic", suburb=True, sub_topic=sub_topic)
+
+
