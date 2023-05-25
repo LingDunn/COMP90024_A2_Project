@@ -273,7 +273,7 @@ def uk_twt_pie():
     """
     UK topic IV: Twitter Count pie.
     """
-    get_topic_counts("ukraine")
+    return get_topic_counts("ukraine")
 
 
 @app.route("/uk_mas_pie")

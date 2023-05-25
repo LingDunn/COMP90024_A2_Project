@@ -253,6 +253,8 @@ def get_topic_counts(sub_topic):
     data = {"counts": [m_c, rest]}
     return data
 
+print(get_topic_counts("ukraine"))
+
 def get_mas_topic_counts(sub_topic):
     # try:
     m_c = mas_topic_view(sub_topic)[sub_topic]
@@ -324,5 +326,3 @@ def get_suburb(data):
         res += string.capwords(item["suburb"]) + ", "
     return res
 
-if __name__ == "__main__":
-    print(get_hashtags_cnt(5))
