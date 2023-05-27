@@ -1,0 +1,86 @@
+# 1. Create applications directory if it is not existed!
+
+sudo mkdir /apps
+
+# 2. Copy the program and files to the Docker host
+
+# copy folder from you located computer to the docker host’s home folder
+
+scp -i mrc.key -r react-app ubuntu@172.26.135.213:.
+
+# copy files from the app folder on home directory in the docker host to the app’s folder
+
+sudo mv react-app /apps
+
+# 3. Creat docker containers
+
+# nginx-app (web proxy)
+
+# create nginx config file
+
+server {
+
+listen 80;
+
+server_name localhost;
+
+location / {
+
+proxy_pass http://172.26.135.213:3000;
+
+proxy_set_header Host $host;
+
+proxy_set_header X-Real-IP $remote_addr;
+
+}
+
+}
+
+# create Dockerfile
+
+FROM nginx:latest
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+CMD ["nginx","-g","daemon off;"]
+
+# Build Dockerfile image
+
+sudo docker build -t nginx-app .
+
+# Run Docker image and create container
+
+sudo docker run -p 80:80 -d nginx-app
+
+# nodejs - react-app
+
+# Create Dockerfile
+
+FROM node:latest
+
+WORKDIR /home/node/app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+
+# Build docker image
+
+sudo docker build -t nodejs-react-app .
+
+# Run docker image with name
+
+sudo docker run --name nodejs-react-app1 -p 3000:3000 nodejs-react-app
+
+# test nginx-app and nodejs—react-app
+
+# by internet browser
+http://172.26.135.213
+# by command line
+curl http://172.26.135.213

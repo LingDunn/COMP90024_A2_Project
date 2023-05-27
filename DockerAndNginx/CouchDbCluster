@@ -1,0 +1,164 @@
+#CLOUD CLUSTER NODES
+
+mount_volume.sh
+
+#!/bin/bash
+
+# 1. Mount volume directories
+sudo mkdir /var/lib/docker 
+cd /var/lib/docker 
+sudo mkfs.ext4 /dev/vdb
+sudo mount  /dev/vdb /var/lib/docker
+
+sudo mkdir /data
+cd /data
+sudo mkfs.ext4 /dev/vdc
+sudo mount /dev/vdc /data
+
+
+#Config it as a permanent storage
+lsblk -o NAME,FSTYPE,UUID,MOUNTPOINTS
+
+#Copy UUID, 
+sudo vi /etc/fstab
+#Add the following two rows at the end of file: 
+UUID=f2c0b67e-e959-484a-8d25-3bc9dcf5b1a3 /var/lib/docker ext4 defaults 0 0
+UUID=2ff7079f-8f1c-42c7-a7f4-c2a9e3acee0b /data ext4 defaults 0 0
+ 
+sudo findmnt --verify
+#It should be print: Success, no errors or warnings detected
+#Do not reboot your Ubuntu Server / Linux OS without resolving those errors or warnings (if any).
+
+sudo reboot 
+
+
+# 2. Setup Docker
+
+#!/bin/bash
+
+sudo apt-get update
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg
+
+# Add Docker’s official GPG key:
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# set up the repository:
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update the apt package index:
+sudo apt-get update
+
+# To install the latest version, run:
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
+# test the setup
+sudo docker run hello-world
+
+
+# 3. Create COuchDB cluster
+sudo docker volume create coudchdb
+
+// change IP address on each node by allnodes
+
+// node 1
+export declare allnodes=(172.26.135.87 172.26.130.223 172.26.130.118)
+export declare nodes=(172.26.135.87)
+export masternode=`echo ${allnodes} | cut -f1 -d' '`
+export declare othernodes=`echo ${allnodes[@]} | sed s/${masternode}//`
+export size=${#allnodes[@]}
+export user='admin'
+export pass='admin'
+export VERSION='3.2.1'
+export cookie='a192aeb9904e6590849337933b000c99'
+
+// node2
+export declare allnodes=(172.26.135.87 172.26.130.223 172.26.130.118)
+export declare nodes=(172.26.130.223)
+export masternode=`echo ${allnodes} | cut -f1 -d' '`
+export declare othernodes=`echo ${allnodes[@]} | sed s/${masternode}//`
+export size=${#allnodes[@]}
+export user='admin'
+export pass='admin'
+export VERSION='3.2.1'
+export cookie='a192aeb9904e6590849337933b000c99'
+
+// node3
+export declare allnodes=(172.26.135.87 172.26.130.223 172.26.130.118)
+export declare nodes=(172.26.130.118)
+export masternode=`echo ${allnodes} | cut -f1 -d' '`
+export declare othernodes=`echo ${allnodes[@]} | sed s/${masternode}//`
+export size=${#allnodes[@]}
+export user='admin'
+export pass='admin'
+export VERSION='3.2.1'
+export cookie='a192aeb9904e6590849337933b000c99'
+
+// all nodes
+for node in "${nodes[@]}" 
+  do
+    if [ ! -z $(sudo docker ps --all --filter "name=couchdb${node}" --quiet) ] 
+       then
+         sudo docker stop $(sudo docker ps --all --filter "name=couchdb${node}" --quiet) 
+         sudo docker rm $(sudo docker ps --all --filter "name=couchdb${node}" --quiet)
+    fi 
+done
+
+for node in "${nodes[@]}" 
+  do
+    sudo docker create\
+      --name couchdb${node}\
+      -p 5984:5984\
+      -p 4369:4369\
+      -p 9100:9100\
+      -v couchdb:/opt/couchdb/data\
+      --env COUCHDB_USER=${user}\
+      --env COUCHDB_PASSWORD=${pass}\
+      --env COUCHDB_SECRET=${cookie}\
+      --env ERL_FLAGS="-setcookie \"${cookie}\" -name \"couchdb@${node}\""\
+      ibmcom/couchdb3:${VERSION}
+done
+
+declare conts=(`sudo docker ps --all | grep couchdb | cut -f1 -d' ' | xargs -n${size} -d'\n'`)
+
+for cont in "${conts[@]}"; do sudo docker start ${cont}; done
+
+// for only other nodes
+for node in ${nodes} 
+do
+    curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup" \
+      --header "Content-Type: application/json"\
+      --data "{\"action\": \"enable_cluster\", \"bind_address\":\"0.0.0.0\",\
+             \"username\": \"${user}\", \"password\":\"${pass}\", \"port\": \"5984\",\
+             \"remote_node\": \"${node}\", \"node_count\": \"$(echo ${nodes[@]} | wc -w)\",\
+             \"remote_current_user\":\"${user}\", \"remote_current_password\":\"${pass}\"}"
+done
+
+for node in ${nodes}
+do
+    curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup"\
+      --header "Content-Type: application/json"\
+      --data "{\"action\": \"add_node\", \"host\":\"${node}\",\
+             \"port\": \"5984\", \"username\": \"${user}\", \"password\":\"${pass}\"}"
+done
+
+curl -XPOST "http://${user}:${pass}@${masternode}:5984/_cluster_setup"\
+    --header "Content-Type: application/json" --data "{\"action\": \"finish_cluster\"}"
+
+for node in “${allnodes[@]}"; do curl -X GET "http://${user}:${pass}@${node}:5984/_membership"; done
+
+// on the master node
+couch="-H Content-Type:application/json -X PUT http://$user:$pass@172.26.135.87:5984"; \
+curl $couch/photon; curl https://raw.githubusercontent.com/ermouth/couch-photon/master/photon.json | \
+curl $couch/photon/_design/photon -d @- ; curl $couch/photon/_security -d '{}' ; \
+curl $couch/_node/_local/_config/csp/attachments_enable -d '"false"' ; \
+curl $couch/_node/_local/_config/chttpd_auth/same_site -d '"lax"' ; 
+
+http://172.26.135.87:5984/photon/_design/photon/index.html

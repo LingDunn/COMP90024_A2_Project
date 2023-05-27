@@ -1,0 +1,8 @@
+# create docker image 
+docker build -t mastodon-docker .
+
+# run docker image 
+docker run -it --rm --name matodon mastodon-docker
+
+# see logs 
+docker logs -f -n 100 --tail 100 [container id]

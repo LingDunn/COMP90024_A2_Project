@@ -1,0 +1,13 @@
+Create an app on the Docker
+
+# Create application directory!
+sudo mkdir /apps/python3
+cd /apps/python3
+
+# Create Dockerfile, entrypoint.sh or copy your programs here
+
+# Create and start = Run you container
+docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp python:3 python your-daemon-or-script.py
+
+# Detailed information:
+#Please https://hub.docker.com/_/python

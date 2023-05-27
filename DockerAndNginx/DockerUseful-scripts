@@ -1,0 +1,72 @@
+// General scripts
+// Start VPN
+ssh -i mrc.key ubuntu@172.26.135.87
+
+Docker Token
+dckr_pat_PaZi-5exwVLo6zbiGISUftr9v5Y
+
+
+// Docker scripts
+// Remove containers & images
+sudo docker container rm -f $(sudo docker container ls -aq) && sudo docker image rm -f $(sudo docker image ls -q)
+
+// exec command inside of the container  
+sudo docker exec -ti -w /opt/couchdb/etc/ my-couchdb-image sh
+sudo docker exec -ti -w /opt/couchdb/etc/ my-couchdb-image sh -c “ls”
+
+// Build & Run image
+// Build image from working directory
+sudo docker build -t my-couchdb-image . && sudo docker run my-couchdb-image
+
+// check log
+sudo less /var/lib/docker/containers/<container_id>/<container_id>-json.log
+
+
+// DOCKER START BY COMMAND LINE
+// Working 1 - from couchdb repo (docker hub) - admin
+sudo docker run -d --name my-couchdb -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password couchdb:latest
+
+
+// Working 2 - admin, network
+sudo docker run -d --name my-couchdb -p 5984:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password couchdb:latest
+
+
+// Working 3 - admin, network, volume
+sudo docker run -d --name my-couchdb -p 5984:5984 -v /data/couchdb/data:/opt/couchdb/data -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password couchdb:latest
+
+
+// DOCKER START BY DOCKERFILE
+// Dockerfile - yag iim nerteigeer app-n directory-d uusgene!
+FROM nginx:latest
+ENV COUCHDB_USER “admin”
+ENV COUCHDB_PASSWORD “password”
+WORKDIR /opt/couchdb/etc
+COPY [“./entrypoint.sh”,””/]      // container ehlehed ajillah script
+RUN cp index.html index_backup.html; \
+         chmod +x /entrypoint.sh; \
+         Apt-get update && apt-get install -qy vim
+
+ENTRYPOINT [“\entrypoint.sh”]
+CMD [“nginx”, ”-g”, ”daemon off;”]
+
+// if the entrypoint is defined in the Dockerfile, the entrypoint should defined before build the image
+
+// Build image using Dockerfile
+sudo docker build -t image-name .
+// Run container using the image
+sudo docker run —name container-name -p 5984:5984 -v /data/couchdb/data:/opt/couchdb/data -d image-name
+
+
+ubuntu@cloud:/apps/couchdb$ sudo vi Dockerfile
+
+FROM couchdb:latest
+
+COPY local.ini /opt/couchdb/etc/local.d/
+
+
+EXPOSE 5984
+
+CMD ["/opt/couchdb/bin/couchdb"]
+
+// Start container!
+sudo docker start 0173fbc4858d

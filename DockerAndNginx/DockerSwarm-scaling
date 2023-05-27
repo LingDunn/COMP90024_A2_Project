@@ -1,0 +1,23 @@
+# init Docker Swarm
+docker swarm init
+
+# Add worker node. Run on the worker node this command
+docker swarm join --token SWMTKN-1-4ay7s2eu9kxdqisldojh6u9fewpclghdfctlm43t3wm3zb9j63-3fc7ah0gud1cpspbe35m7tgea 172.26.135.213:2377
+
+
+# create docker service for docker swarm using a predefined docker image
+docker service create --name <service-name> --replicas <num-replicas> -p <hotPortNumber>:<containerPortNumber> <image-name>
+
+# update docker service
+sudo docker service update --image <image-name> <service-name>
+
+# scaling up/down
+sudo docker service scale <service-name>=2
+sudo docker service scale <service-name>=1
+
+# for mastodon harverter
+sudo docker service scale mastodon=2
+
+
+# for backend app
+sudo docker service scale backend=2

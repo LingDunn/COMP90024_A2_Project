@@ -1,0 +1,59 @@
+#CouchDB Single Node
+
+#Dockerfile
+
+FROM couchdb:latest
+
+COPY local.ini /opt/couchdb/etc/local.d/
+
+CMD ["/opt/couchdb/bin/couchdb"]
+
+
+Local.ini
+
+[admins]
+appuser=CompleteIt12345
+frank=ChangeIt!
+ling=ChangeIt!
+mark=ChangeIt!
+jiahao=ChangeIt!
+ming=ChangeIt!
+
+
+
+// DOCKER START BY DOCKERFILE
+// Dockerfile - yag iim nerteigeer app-n directory-d uusgene!
+FROM nginx:latest
+ENV COUCHDB_USER “admin”
+ENV COUCHDB_PASSWORD “password”
+WORKDIR /opt/couchdb/etc
+COPY [“./entrypoint.sh”,””/]      // container ehlehed ajillah script
+RUN cp index.html index_backup.html; \
+         chmod +x /entrypoint.sh; \
+         Apt-get update && apt-get install -qy vim
+
+ENTRYPOINT [“\entrypoint.sh”]
+CMD [“nginx”, ”-g”, ”daemon off;”]
+
+// if the entrypoint is defined in the Dockerfile, the entrypoint should defined before build the image
+
+// Build image using Dockerfile
+sudo docker build -t image-name .
+// Run container using the image
+sudo docker run —name container-name -p 5984:5984 -v /data/couchdb/data:/opt/couchdb/data -d image-name
+
+
+ubuntu@cloud:/apps/couchdb$ sudo vi Dockerfile
+
+FROM couchdb:latest
+
+COPY local.ini /opt/couchdb/etc/local.d/
+
+
+EXPOSE 5984
+
+CMD ["/opt/couchdb/bin/couchdb"]
+
+// Start container!
+sudo docker start 0173fbc4858d
+

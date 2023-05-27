@@ -1,0 +1,17 @@
+// Select all db list
+curl -X GET http://admin:password@127.0.0.1:5984/_all_dbs
+
+// create db
+curl -X PUT  http://admin:password@127.0.0.1:5984/dbname
+
+curl -X PUT  http://admin:password@127.0.0.1:5984/receipts
+
+
+// insert a document to the db
+curl -X PUT http://admin:password@127.0.0.1:5984/receipts/"002" -d '{"name": "Frank", "age":33,"Profession":"Software Engineer"}'
+
+// select documents from the db
+curl -X PUT http://admin:password@127.0.0.1:5984/receipts/_all_docs
+
+// select a document from the db
+curl -X PUT http://admin:password@127.0.0.1:5984/receipts/002
