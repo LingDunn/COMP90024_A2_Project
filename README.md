@@ -14,6 +14,8 @@ Team members:
 ## Directories
 [Ansible](ansible)
 
+[Docker & Nginx](DockerAndNginx)
+
 [Mastodon pipeline](mastdon-data)
 
 [Data analysis pipeline & Backend](Data_Analysis)
