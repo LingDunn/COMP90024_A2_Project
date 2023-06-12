@@ -12,10 +12,15 @@ Team members:
 
 
 ## Directories
-ansible: ansible scripts for environment 
+[Ansible](ansible)
 
-Data_Analysis: analyzing tools and backend application
+[Docker & Nginx](DockerAndNginx)
 
-mastodon-data: mastodon data collector
+[Mastodon pipeline](mastdon-data)
 
-web-app: frontend dashboard
+[Data analysis pipeline & Backend](Data_Analysis)
+
+[Frontend](web-app)
+
+
+## [Dashboard](http://172.26.135.213/admin/dashboard)
